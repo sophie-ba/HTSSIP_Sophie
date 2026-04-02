@@ -4,8 +4,15 @@
 \alias{SIP_betaDiv_ord}
 \title{Calculating & plotting beta diversity for a list of phyloseq objects}
 \usage{
-SIP_betaDiv_ord(physeq_l, method = "unifrac", weighted = TRUE,
-  fast = TRUE, normalized = TRUE, parallel = FALSE, plot = FALSE)
+SIP_betaDiv_ord(
+  physeq_l,
+  method = "unifrac",
+  weighted = TRUE,
+  fast = TRUE,
+  normalized = TRUE,
+  parallel = FALSE,
+  plot = FALSE
+)
 }
 \arguments{
 \item{physeq_l}{A list of phyloseq objects}

@@ -6,11 +6,19 @@
 data by calculating the beta diversity between unlabeled control
 and labeled treatment gradient fraction communities.}
 \usage{
-BD_shift(physeq, method = "unifrac", weighted = TRUE, fast = TRUE,
-  normalized = FALSE, ex = "Substrate=='12C-Con'",
+BD_shift(
+  physeq,
+  method = "unifrac",
+  weighted = TRUE,
+  fast = TRUE,
+  normalized = FALSE,
+  ex = "Substrate=='12C-Con'",
   perm_method = c("control", "treatment", "overlap", "adjacent"),
-  nperm = 100, a = 0.1, parallel_perm = FALSE,
-  parallel_dist = FALSE)
+  nperm = 100,
+  a = 0.1,
+  parallel_perm = FALSE,
+  parallel_dist = FALSE
+)
 }
 \arguments{
 \item{physeq}{phyloseq object}

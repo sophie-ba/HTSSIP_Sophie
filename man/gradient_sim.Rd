@@ -4,8 +4,13 @@
 \alias{gradient_sim}
 \title{Simulate HTS-SIP communities for 1 density gradient}
 \usage{
-gradient_sim(locs, params, responseModel = "gaussian",
-  countModel = "poisson", ...)
+gradient_sim(
+  locs,
+  params,
+  responseModel = "gaussian",
+  countModel = "poisson",
+  ...
+)
 }
 \arguments{
 \item{locs}{Buoyant densities of each gradient fraction}

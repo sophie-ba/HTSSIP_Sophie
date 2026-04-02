@@ -2,8 +2,8 @@
 % Please edit documentation in R/HTSSIP.R
 \docType{package}
 \name{HTSSIP}
-\alias{HTSSIP}
 \alias{HTSSIP-package}
+\alias{HTSSIP}
 \title{HTSSIP: analyzing high throughput sequence data from nucleotide stable isotope probing experiments}
 \description{
 HTSSIP provides a toolset for reproducibly analyzing HTS-SIP data.
@@ -13,4 +13,13 @@ and high throughput sequence data (e.g., MiSeq of 16S rRNA amplicons).
 \details{
 To learn more about HTSSIP, start with the vignettes:
 \code{browseVignettes(package = "HTSSIP")}
+}
+\author{
+\strong{Maintainer}: Samuel Barnett \email{seb369@cornell.edu} [contributor]
+
+Authors:
+\itemize{
+  \item Nicholas Youngblut \email{nyoungb2@gmail.com}
+}
+
 }

@@ -4,8 +4,14 @@
 \alias{physeq_list_betaDiv}
 \title{calculating beta diversity for a list of phyloseq objects}
 \usage{
-physeq_list_betaDiv(physeq_l, method = "unifrac", weighted = TRUE,
-  fast = TRUE, normalized = TRUE, parallel = FALSE)
+physeq_list_betaDiv(
+  physeq_l,
+  method = "unifrac",
+  weighted = TRUE,
+  fast = TRUE,
+  normalized = TRUE,
+  parallel = FALSE
+)
 }
 \arguments{
 \item{physeq_l}{A list of phyloseq objects}

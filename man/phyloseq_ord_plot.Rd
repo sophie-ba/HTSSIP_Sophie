@@ -4,9 +4,14 @@
 \alias{phyloseq_ord_plot}
 \title{Plotting beta diversity ordination}
 \usage{
-phyloseq_ord_plot(physeq_ord_df, title = NULL,
-  point_size = "Buoyant_density", point_fill = "Substrate",
-  point_alpha = 0.5, point_shape = NULL)
+phyloseq_ord_plot(
+  physeq_ord_df,
+  title = NULL,
+  point_size = "Buoyant_density",
+  point_fill = "Substrate",
+  point_alpha = 0.5,
+  point_shape = NULL
+)
 }
 \arguments{
 \item{physeq_ord_df}{A list of data.frame objects (see phyloseq_list_ord_dfs)}

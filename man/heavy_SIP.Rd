@@ -4,12 +4,19 @@
 \alias{heavy_SIP}
 \title{Heavy-SIP analysis}
 \usage{
-heavy_SIP(physeq, ex = "Substrate=='12C-Con'", rep = "Replicate",
-  light_window = c(1.68, 1.7), heavy_window = c(1.73, 1.75),
-  comparison = c("H", "H-v-L", "H-v-H"), hypo_test = c("binary",
-  "t-test", "wilcox"), alternative = c("greater", "two.sided", "less"),
-  sparsity_threshold = 0.1, sparsity_apply = c("all", "heavy"),
-  padj_method = "BH")
+heavy_SIP(
+  physeq,
+  ex = "Substrate=='12C-Con'",
+  rep = "Replicate",
+  light_window = c(1.68, 1.7),
+  heavy_window = c(1.73, 1.75),
+  comparison = c("H", "H-v-L", "H-v-H"),
+  hypo_test = c("binary", "t-test", "wilcox"),
+  alternative = c("greater", "two.sided", "less"),
+  sparsity_threshold = 0.1,
+  sparsity_apply = c("all", "heavy"),
+  padj_method = "BH"
+)
 }
 \arguments{
 \item{physeq}{A phyloseq object of just treatment vs control.

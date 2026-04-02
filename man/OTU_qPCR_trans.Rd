@@ -4,8 +4,12 @@
 \alias{OTU_qPCR_trans}
 \title{Transform OTU counts based on qPCR data}
 \usage{
-OTU_qPCR_trans(physeq, qPCR, sample_idx = "Sample",
-  value_idx = "qPCR_tech_rep_mean")
+OTU_qPCR_trans(
+  physeq,
+  qPCR,
+  sample_idx = "Sample",
+  value_idx = "qPCR_tech_rep_mean"
+)
 }
 \arguments{
 \item{physeq}{A phyloseq object}

@@ -4,8 +4,13 @@
 \alias{qSIP_atom_excess}
 \title{Calculate atom fraction excess using q-SIP method}
 \usage{
-qSIP_atom_excess(physeq, control_expr, treatment_rep = NULL,
-  isotope = "13C", df_OTU_W = NULL)
+qSIP_atom_excess(
+  physeq,
+  control_expr,
+  treatment_rep = NULL,
+  isotope = "13C",
+  df_OTU_W = NULL
+)
 }
 \arguments{
 \item{physeq}{A phyloseq object}
