@@ -5,3 +5,7 @@
 data-raw/
 inst/doc
 screenlog.*
+.RData
+.httr-oauth
+.DS_Store
+.quarto

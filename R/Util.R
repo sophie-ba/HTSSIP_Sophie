@@ -77,22 +77,28 @@ phyloseq2df = function(physeq, table_func){
 #' head(df_OTU)
 #' }
 #'
-phyloseq2table = function(physeq,
-                          include_sample_data=FALSE,
-                          sample_col_keep=NULL,
-                          include_tax_table=FALSE,
-                          tax_col_keep=NULL,
-                          control_expr=NULL){
+phyloseq2table <- function(physeq,
+                           include_sample_data=FALSE,
+                           sample_col_keep=NULL,
+                           include_tax_table=FALSE,
+                           tax_col_keep=NULL,
+                           control_expr=NULL){
   # OTU table
-  df_OTU = phyloseq::otu_table(physeq)
-  df_OTU = suppressWarnings(as.data.frame(as.matrix(df_OTU)))
-  df_OTU$OTU = rownames(df_OTU)
-  sel_cols = colnames(df_OTU)[colnames(df_OTU) != 'OTU']
-  df_OTU = tidyr::gather(df_OTU, "SAMPLE_JOIN", "Count", -"OTU")
+  df_OTU <- phyloseq::otu_table(physeq)
+  # Transform into Dataframe
+  df_OTU <- suppressWarnings(as.data.frame(as.matrix(df_OTU)))
+  # Create Col. with OTU names
+  df_OTU$OTU <- rownames(df_OTU)
+  # Select Sample names for later
+  sel_cols <- colnames(df_OTU)[colnames(df_OTU) != 'OTU']
+  # Pivot Longer to OTU; Sample name = SAMPLE_JOIN; Count
+  df_OTU <- tidyr::gather(df_OTU, "SAMPLE_JOIN", "Count", -"OTU")
 
-  # sample metdata
+  # sample metadata
   if(include_sample_data==TRUE){
+    # Get Metadata as dataframe
     df_meta = phyloseq2df(physeq, phyloseq::sample_data)
+    # Create col with sample names = SAMPLE_JOIN
     df_meta$SAMPLE_JOIN = rownames(df_meta)
 
     if(! is.null(control_expr)){
@@ -107,11 +113,11 @@ phyloseq2table = function(physeq,
 
     ## trimming
     if(!is.null(sample_col_keep)){
-      sample_col_keep = c('SAMPLE_JOIN', sample_col_keep)
+      sample_col_keep <- c('SAMPLE_JOIN', sample_col_keep)
       df_meta = dplyr::select_(df_meta, .dots=as.list(sample_col_keep))
     }
     # join
-    df_OTU = dplyr::inner_join(df_OTU, df_meta, c('SAMPLE_JOIN'))
+    df_OTU = dplyr::inner_join(df_OTU, df_meta, by = 'SAMPLE_JOIN')
     if(nrow(df_OTU) == 0){
       stop('No rows returned after inner_join of otu_table & sample_data')
     }
@@ -120,12 +126,15 @@ phyloseq2table = function(physeq,
   # taxonomy table
   if(include_tax_table==TRUE){
     df_tax = phyloseq::tax_table(physeq)
+    # tax table into dataframe
     df_tax = suppressWarnings(as.data.frame(as.matrix(df_tax)))
+    # Create Column with taxa names
     df_tax$OTU = rownames(df_tax)
-    ## trimming
+
+    ## trimming if some cols for Taxa are selected:
     if(!is.null(tax_col_keep)){
       tax_col_keep = c('OTU', tax_col_keep)
-      df_tax = dplyr::select_(df_tax, .dots=as.list(tax_col_keep))
+      df_tax = dplyr::select(df_tax, all_of(tax_col_keep))
     }
     # join
     df_OTU = dplyr::inner_join(df_OTU, df_tax, c('OTU'))
