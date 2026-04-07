@@ -186,7 +186,7 @@ params
 Let's use the expression and parameters to subset the phyloseq object into a list of phyloseq object subsets:
 
 ```{r}
-physeq_S2D2_l <- phyloseq_subset(physeq_S2D2, params, ex) # here, there is an error....  
+physeq_S2D2_l <- phyloseq_subset(physeq_S2D2, params, ex) # here, an error is shown, but the output seems correct....  
 physeq_S2D2_l
 ```
 
