@@ -164,27 +164,28 @@ qSIP_atom_excess <- function(physeq,
     dplyr::ungroup()
 
   # atom excess (A)
-  ## pt1
-  dots = list(~calc_Gi(Wlight))
-  dots = stats::setNames(dots, "Gi")
-  df_OTU_s = df_OTU_s %>%
-    mutate(.dots=dots) %>%
-    mutate(Mlight = "0.496 * Gi + 307.691")
-  ## pt2
-  MoreArgs = list(isotope=isotope)
-  dots = list(~mapply(calc_Mheavymax, Mlight=Mlight, Gi=Gi, MoreArgs=MoreArgs))
-  dots = stats::setNames(dots, "Mheavymax")
-  df_OTU_s = df_OTU_s %>%
-    dplyr::mutate(.dots=dots)
-  ## pt3
-  dots = list(~mapply(calc_atom_excess, Mlab=Mlab, Mlight=Mlight,
-                      Mheavymax=Mheavymax, MoreArgs=MoreArgs))
-  dots = stats::setNames(dots, "A")
-  df_OTU_s = df_OTU_s %>%
-    dplyr::mutate(Mlab = "(Z / Wlight + 1) * Mlight") %>%
-    dplyr::mutate(.dots=dots)
+  ## pt1: Calculate G+C content and Light Molecular Weight
+  df_OTU_s <- df_OTU_s %>%
+    dplyr::mutate(
+      Gi = calc_Gi(Wlight),
+      Mlight = 0.496 * Gi + 307.691
+    )
+  ## pt2: Calculate Max Heavy Molecular Weight
+  df_OTU_s <- df_OTU_s %>%
+    dplyr::mutate(
+      Mheavymax = calc_Mheavymax(Mlight = Mlight, Gi = Gi, isotope = isotope)
+    )
+  ## pt3: Calculate Lab Molecular Weight and Atom Excess (A)
+  df_OTU_s <- df_OTU_s %>%
+    dplyr::mutate(
+      # Calculate Mlab first so it's available for the next line
+      Mlab = (Z / Wlight + 1) * Mlight,
+      # Calculate Atom Excess (A)
+      A = calc_atom_excess(Mlab = Mlab, Mlight = Mlight,
+                           Mheavymax = Mheavymax, isotope = isotope)
+    )
 
-  ## flow control: bootstrap
+  ## flow control: bootstrap and return results
   if(no_boot){
     return(list(W=df_OTU_W, A=df_OTU_s))
   } else {
