@@ -99,7 +99,7 @@ phyloseq2table <- function(physeq,
   # sample metadata
   if(include_sample_data==TRUE){
     # Get Metadata as dataframe
-    df_meta = phyloseq2df(physeq, phyloseq::sample_data)
+    df_meta <- phyloseq2df(physeq, phyloseq::sample_data)
     # Create new Column SAMPLE_JOIN with rownames which are the Sample names
     df_meta$SAMPLE_JOIN <- rownames(df_meta)
 
