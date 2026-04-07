@@ -7,7 +7,7 @@
 #'
 #' @export
 #'
-as.Num = function(x){
+as.Num <- function(x){
   as.numeric(as.character(x))
 }
 
@@ -31,7 +31,7 @@ as.Num = function(x){
 #' df_sample = phyloseq2df(physeq_S2D1, table_func=phyloseq::sample_data)
 #' head(df_sample)
 #'
-phyloseq2df = function(physeq, table_func){
+phyloseq2df <- function(physeq, table_func){
   physeq.md = table_func(physeq)
   physeq.md = suppressWarnings(as.data.frame(as.matrix(physeq.md)))
   physeq.md = as.matrix(data.frame(lapply(physeq.md, as.character)))
@@ -142,6 +142,5 @@ phyloseq2table <- function(physeq,
       stop('No rows returned after inner_join of otu_table & tax_table')
     }
   }
-
   return(df_OTU)
 }
