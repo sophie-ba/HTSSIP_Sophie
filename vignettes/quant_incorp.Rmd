@@ -11,21 +11,21 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-***
+------------------------------------------------------------------------
 
 # Introduction
 
-There are two prevaling methods for using HTS-SIP data to estimate the amount of isotope that each OTU incorporated: 
+There are two prevaling methods for using HTS-SIP data to estimate the amount of isotope that each OTU incorporated:
 
-* q-SIP
-* delta_BD (a complementary analysis to HR-SIP)
-    * Note: delta_BD is formally written as: $\Delta\hat{BD}$ 
+-   q-SIP
+-   delta_BD (a complementary analysis to HR-SIP)
+    -   Note: delta_BD is formally written as: $\Delta\hat{BD}$
 
 In this vignette, we are going to show how to run both analyses and also compare the results a bit.
 
-# Dataset 
+# Dataset
 
-First, let's load some packages including `HTSSIP`. 
+First, let's load some packages including `HTSSIP`.
 
 ```{r, message=FALSE, warning=FALSE}
 library(dplyr)
@@ -33,10 +33,10 @@ library(ggplot2)
 library(HTSSIP)
 ```
 
-OK. We're going to be using 2 data files: 
+OK. We're going to be using 2 data files:
 
-* HTS-SIP data (phyloseq format)
-* qPCR data (total 16S rRNA gene copies per gradient fraction)
+-   HTS-SIP data (phyloseq format)
+-   qPCR data (total 16S rRNA gene copies per gradient fraction)
 
 We'll be using the dataset that we simulated in the [HTSSIP_sim](./HTSSIP_sim.html) vignette.
 
@@ -47,7 +47,7 @@ The phyloseq object is similar to the dataset in the other vignettes.
 physeq_rep3
 ```
 
-The associated qPCR data is a list of length = 2. 
+The associated qPCR data is a list of length = 2.
 
 ```{r}
 # qPCR data (list object)
@@ -58,39 +58,43 @@ For the analyses in this vignette, we only need the 'summary' table.
 
 ```{r}
 # qPCR data (list object)
-physeq_rep3_qPCR_sum = physeq_rep3_qPCR$summary
+physeq_rep3_qPCR_sum <- physeq_rep3_qPCR$summary
 physeq_rep3_qPCR_sum %>% head(n=4)
 ```
 
 # q-SIP
 
-OK. Let's quantify isotope incorporation witht the q-SIP method. 
+OK. Let's quantify isotope incorporation witht the q-SIP method.
 
 ```{r}
 # transforming OTU counts
-physeq_rep3_t = OTU_qPCR_trans(physeq_rep3, physeq_rep3_qPCR_sum)
+physeq_rep3_t <- OTU_qPCR_trans(physeq_rep3, physeq_rep3_qPCR_sum) 
+# combines OTU counts with  the Amplicon Data. 
 
 # calculating atom fraction excess
-atomX = qSIP_atom_excess(physeq_rep3_t,
-                         control_expr='Treatment=="12C-Con"',
-                         treatment_rep='Replicate')
+atomX <- qSIP_atom_excess(physeq_rep3_t,
+                          control_var = "Treatment",
+                          control_expr="12C-Con",
+                          treatment_rep= "Replicate", 
+                          isotope = "13C", df_OTU_W = NULL)
+
 atomX %>% names
 ```
 
-The resulting list object contains 2 data.frames. We are interested in the 'A' table, which contains estimated BD shifts (Z) and atom fraction excess (A). 
+The resulting list object contains 2 data.frames. We are interested in the 'A' table, which contains estimated BD shifts (Z) and atom fraction excess (A).
 
 ```{r}
 atomX$A %>% head(n=4)
 ```
 
-Next, let's calculate bootstrap confidence intervales for the atom fraction excess estimations. 
+Next, let's calculate bootstrap confidence intervals for the atom fraction excess estimations.
 
 ```{r}
 # calculating bootstrapped CI values
-df_atomX_boot = qSIP_bootstrap(atomX, n_boot=100)
+devtools::load_all()
+df_atomX_boot <- qSIP_bootstrap(atomX, n_boot=100)
 df_atomX_boot %>% head(n=4)
 ```
-
 
 # delta_BD
 
@@ -101,10 +105,9 @@ df_dBD = delta_BD(physeq_rep3, control_expr='Treatment=="12C-Con"')
 df_dBD %>% head(n=4)
 ```
 
-
 # Comparing results
 
-Let's plot the data and compare all of the results. First, let's join all of the data into one table for plotting. We'll also format it for plotting. 
+Let's plot the data and compare all of the results. First, let's join all of the data into one table for plotting. We'll also format it for plotting.
 
 ```{r}
 # checking & joining data 

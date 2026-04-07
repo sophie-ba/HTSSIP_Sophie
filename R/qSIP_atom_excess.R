@@ -126,7 +126,7 @@ qSIP_atom_excess <- function(physeq,
                             control_var,
                             control_expr,
                             treatment_rep=NULL,
-                            isotope='13C',
+                            isotope="13C",
                             df_OTU_W=NULL){
   # formatting input
   if(is.null(df_OTU_W)){
@@ -144,9 +144,9 @@ qSIP_atom_excess <- function(physeq,
     # BD shift (Z)
     df_OTU_W <- df_OTU %>%
       # weighted mean buoyant density (W) per OTU and treatment over replicates
-      dplyr::mutate(Buoyant_density = "as.numeric(as.character(Buoyant_density))",
-                     Count = "as.numeric(as.character(Count))") %>%
-      dplyr::group_by('IS_CONTROL', 'OTU', .data[[treatment_rep]]) %>%
+      dplyr::mutate(Buoyant_density = as.numeric(as.character(Buoyant_density)),
+                     Count = as.numeric(as.character(Count))) %>%
+      dplyr::group_by(IS_CONTROL, OTU, .data[[treatment_rep]]) %>%
       # get mean buoyant density per control/Treatment and OTU over all replicates:
       dplyr::summarize(W = stats::weighted.mean(Buoyant_density, Count, na.rm=TRUE)) %>%
       dplyr::ungroup()
@@ -223,28 +223,30 @@ sample_W = function(df, n_sample){
 
 
 # shuffling weighted mean densities (W)
-.qSIP_bootstrap = function(atomX,
-                           isotope='13C',
-                           n_sample=c(3,3),
+.qSIP_bootstrap <- function(atomX,
+                           isotope = '13C',
+                           n_sample = c(3,3),
                            bootstrap_id = 1){
-  # making a new (subsampled with replacement) dataset
-  n_sample = c(3,3)  # control, treatment
-  dots = stats::setNames(list(~lapply(data, sample_W, n_sample=n_sample)), "ret")
-  df_OTU_W = atomX$W %>%
-    dplyr::group_by("OTU") %>%
-    tidyr::nest() %>%
-    dplyr::mutate(.dots=dots) %>%
-    dplyr::select("-data") %>%
-    tidyr::unnest()
 
-  # calculating atom excess
-  atomX = qSIP_atom_excess(physeq=NULL,
-                           df_OTU_W=df_OTU_W,
-                           control_expr=NULL,
-                           treatment_rep=NULL,
-                           isotope=isotope)
-  atomX$bootstrap_id = bootstrap_id
-  return(atomX)
+  # 1. Subsample with replacement
+  # We use 'map' to apply sample_W to every nested OTU table
+  df_OTU_W <- atomX$W %>%
+    dplyr::group_by(OTU) %>%
+    tidyr::nest() %>%
+    dplyr::mutate(ret = purrr::map(data, ~sample_W(.x, n_sample = n_sample))) %>%
+    dplyr::select(-data) %>%
+    tidyr::unnest(cols = c(ret))
+
+  # 2. Re-calculate Atom Excess for this specific shuffle
+  # We pass the new shuffled df_OTU_W directly into the calculation function
+  atomX_boot = qSIP_atom_excess(physeq = NULL,
+                                df_OTU_W = df_OTU_W,
+                                control_expr = NULL,
+                                treatment_rep = NULL,
+                                isotope = isotope)
+
+  atomX_boot$bootstrap_id = bootstrap_id
+  return(atomX_boot)
 }
 
 
@@ -282,29 +284,34 @@ sample_W = function(df, n_sample){
 #' head(df_atomX_boot)
 #' }
 #'
-qSIP_bootstrap = function(atomX, isotope='13C', n_sample=c(3,3),
-                          n_boot=10, parallel=FALSE, a=0.1){
+qSIP_bootstrap <- function(atomX,
+                           isotope='13C',
+                           n_sample=c(3,3),
+                           n_boot=10,
+                           parallel=FALSE,
+                           a=0.1){
   # atom excess for each bootstrap replicate
-  df_boot_id = data.frame(bootstrap_id = 1:n_boot)
-  df_boot = plyr::mdply(df_boot_id, .qSIP_bootstrap,
-                        atomX = atomX,
-                        isotope=isotope,
-                        n_sample=n_sample,
-                        .parallel=parallel)
+  df_boot <- purrr::map_df(1:n_boot, function(i) { # i is the current bootstrap ID
+    .qSIP_bootstrap(atomX = atomX,
+                    isotope = isotope,
+                    n_sample = n_sample,
+                    bootstrap_id = i)
+  })
+  # 2. Calculate Confidence Intervals (CIs) for each OTU
+  # We replace lazyeval with standard tidy evaluation
+  df_boot_summary <- df_boot %>%
+    dplyr::group_by(OTU) %>%
+    dplyr::summarize(
+      A_CI_low = stats::quantile(A, a/2, na.rm = TRUE),
+      A_CI_high = stats::quantile(A, 1 - a/2, na.rm = TRUE),
+      .groups = "drop"
+    )
 
-  # calculating atomX CIs for each OTU
-  mutate_call1 = lazyeval::interp(~ stats::quantile(A, a/2, na.rm=TRUE),
-                                 A = as.name("A"))
-  mutate_call2 = lazyeval::interp(~ stats::quantile(A, 1-a/2, na.rm=TRUE),
-                                 A = as.name("A"))
-  dots = stats::setNames(list(mutate_call1, mutate_call2), c("A_CI_low", "A_CI_high"))
-  df_boot = df_boot %>%
-    dplyr::group_by("OTU") %>%
-    dplyr::summarize(.dots=dots)
+  # 3. Combine with original Atom Excess results
+  # atomX$A contains the 'real' calculation we want to attach CIs to
+  final_results <- dplyr::inner_join(atomX$A, df_boot_summary, by = "OTU")
 
-  # combining with atomX summary data
-  df_boot = dplyr::inner_join(atomX$A, df_boot, c('OTU'='OTU'))
-  return(df_boot)
+  return(final_results)
 }
 
 

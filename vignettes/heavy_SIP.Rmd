@@ -11,19 +11,19 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-***
+------------------------------------------------------------------------
 
 # Introduction
 
 ## heavy-SIP method workflow:
 
-Prior to the development of these HTS-SIP analysis methods, DNA- and RNA-SIP experiments that utilized Sanger or high throughput sequencing were usually analyzed with standard statistical processes (e.g. t-tests), in order to identify incorporators. Previous work suggests that these methods generally have low senstivity and/or high false positive rates when applied to sequence data. Here, these analysis methods will be referred to "heavy-SIP" methods. While the work of Youngblut et al., (https://doi.org/10.3389/fmicb.2018.00570) suggests that HR-SIP analysis methods (eg., MW-HR-SIP) should be used for processing HTS-SIP datasets, the HTSSIP R package provides heavy-SIP methods so researchers have the option of using these methods and making their own comparisons to HR-SIP methods. 
+Prior to the development of these HTS-SIP analysis methods, DNA- and RNA-SIP experiments that utilized Sanger or high throughput sequencing were usually analyzed with standard statistical processes (e.g. t-tests), in order to identify incorporators. Previous work suggests that these methods generally have low senstivity and/or high false positive rates when applied to sequence data. Here, these analysis methods will be referred to "heavy-SIP" methods. While the work of Youngblut et al., (<https://doi.org/10.3389/fmicb.2018.00570>) suggests that HR-SIP analysis methods (eg., MW-HR-SIP) should be used for processing HTS-SIP datasets, the HTSSIP R package provides heavy-SIP methods so researchers have the option of using these methods and making their own comparisons to HR-SIP methods.
 
 heavy-SIP is performed with the `heavy_SIP()` function, which consists of multiple possible tests. See `?heavy_SIP` for more details. This vignette demonstrates the use of `heavy_SIP()`.
 
-# Initialization 
+# Initialization
 
-First, let's load some packages including `HTSSIP`. 
+First, let's load some packages including `HTSSIP`.
 
 ```{r, message=FALSE, warning=FALSE}
 library(dplyr)
@@ -48,24 +48,22 @@ We will be using a dataset that is already parsed. See [HTSSIP introduction vign
 physeq_S2D2_l
 ```
 
-
 # One treatment-control comparison
 
-First, we'll just focus on 1 treatment-control comparison. Let's get the individual phyloseq object. 
+First, we'll just focus on 1 treatment-control comparison. Let's get the individual phyloseq object.
 
 ```{r}
 physeq = physeq_S2D2_l[[1]]
 physeq
 ```
 
-Let's check that the samples belong to either a 13C-treatment or 12C-control. 
+Let's check that the samples belong to either a 13C-treatment or 12C-control.
 
 ```{r}
 physeq %>% sample_data %>% .$Substrate %>% table
 ```
 
-Since this dataset is an unreplicated comparison between treatment & control, we are just going to use the 'binary' method, which will call incorporators if they are present in the "heavy" gradient fractions of the treatment and not present in the "heavy" fractions of the control. Note that the "heavy" fractions are user-defined. 
-
+Since this dataset is an unreplicated comparison between treatment & control, we are just going to use the 'binary' method, which will call incorporators if they are present in the "heavy" gradient fractions of the treatment and not present in the "heavy" fractions of the control. Note that the "heavy" fractions are user-defined.
 
 ```{r heavy_SIP_simple, message=FALSE}
 df_res = heavy_SIP(physeq, ex="Substrate=='12C-Con'", 
@@ -81,10 +79,9 @@ How many "incorporators"?
 df_res$statistic %>% table
 ```
 
-
 # Replicated dataset
 
-Experimental replicates allows us to use tradional hypothesis testing (*e.g.,* t-tests) for determining significantly differ OTU abundances between treatment and controls. Note that there is a reason why more suffisticated statistical methods have been developed for assessing differentially abundant features in high throughput sequencing datasets (*e.g.,* DESeq2, EdgeR, or MetagenomeSeq). The traditional methods don't account for many challenging aspects of identifying statistically different abundances in sequence data such as i) a high number of multiple hypotheses ii) zero-inflation iii) compositional data (relative abundances; the sum-to-one constraint). 
+Experimental replicates allows us to use tradional hypothesis testing (*e.g.,* t-tests) for determining significantly differ OTU abundances between treatment and controls. Note that there is a reason why more suffisticated statistical methods have been developed for assessing differentially abundant features in high throughput sequencing datasets (*e.g.,* DESeq2, EdgeR, or MetagenomeSeq). The traditional methods don't account for many challenging aspects of identifying statistically different abundances in sequence data such as i) a high number of multiple hypotheses ii) zero-inflation iii) compositional data (relative abundances; the sum-to-one constraint).
 
 With that said, let's try out these heavy-SIP methods on a replicated dataset, with 3 experimental replicates of the control and treatment (total gradients = 6)
 
@@ -98,7 +95,7 @@ physeq_rep3 %>% sample_data %>% head(n=3)
 
 ## t-tests
 
-To compare "heavy" fractions in the treatment versus "heavy" fractions in the control, we will use the "H-v-H" comparison method. See `?heavy_SIP` for details on other possible comparisons. 
+To compare "heavy" fractions in the treatment versus "heavy" fractions in the control, we will use the "H-v-H" comparison method. See `?heavy_SIP` for details on other possible comparisons.
 
 ```{r heavy_SIP_ttest, message=FALSE}
 df_res = heavy_SIP(physeq_rep3, ex="Treatment=='12C-Con'", 
@@ -106,7 +103,7 @@ df_res = heavy_SIP(physeq_rep3, ex="Treatment=='12C-Con'",
 df_res %>% head(n=3)
 ```
 
-"padj" is p-values adjusted with the Benjamini Hochberg method. 
+"padj" is p-values adjusted with the Benjamini Hochberg method.
 
 How many incorporators?
 
@@ -139,12 +136,10 @@ df_res$p %>% summary %>% print
 df_res$padj %>% summary %>% print
 ```
 
-Again, no incorporators. The change in abundances must be pretty dramatic for heavy-SIP methods to ID incorporators, especially when there's many multiple hypotheses. 
-
+Again, no incorporators. The change in abundances must be pretty dramatic for heavy-SIP methods to ID incorporators, especially when there's many multiple hypotheses.
 
 # Session info
 
 ```{r}
 sessionInfo()
 ```
-
