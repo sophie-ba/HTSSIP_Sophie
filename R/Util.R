@@ -53,6 +53,7 @@ phyloseq2df <- function(physeq, table_func){
 #' @param include_tax_table  Include \code{tax_table} information?
 #' @param tax_col_keep  A vector for column names to keep.
 #'   Use \code{NULL} to keep all columns.
+#' @param control_var Variable that contains the condition for the control/treatments. e.g. Substrate
 #' @param control_expr  An expression for identifying which samples are controls.
 #' Control/non-control identification will be in the 'IS_CONTROL' column of the
 #' returned data.frame object.
@@ -82,6 +83,7 @@ phyloseq2table <- function(physeq,
                            sample_col_keep=NULL,
                            include_tax_table=FALSE,
                            tax_col_keep=NULL,
+                           control_var = NULL,
                            control_expr=NULL){
   # OTU table
   df_OTU <- phyloseq::otu_table(physeq)
@@ -99,12 +101,15 @@ phyloseq2table <- function(physeq,
     # Get Metadata as dataframe
     df_meta = phyloseq2df(physeq, phyloseq::sample_data)
     # Create new Column SAMPLE_JOIN with rownames which are the Sample names
-    df_meta$SAMPLE_JOIN = rownames(df_meta)
+    df_meta$SAMPLE_JOIN <- rownames(df_meta)
 
     if(! is.null(control_expr)){
-      # setting control
-      df_meta = df_meta %>%
-        dplyr::mutate(IS_CONTROL = control_expr)
+      # setting control - Wanted = a boolean vector or something that says control versus treat for each entry I think.
+      df_meta <- df_meta %>%
+        mutate(IS_CONTROL =
+                 case_when({{control_var}} == control_expr ~ TRUE,
+                           {{control_var}} != control_expr ~ FALSE,
+                           TRUE ~ FALSE))
       # check
       if(all(df_meta$IS_CONTROL == FALSE)){
         stop('control_expr is not valid; no samples selected as controls')
