@@ -87,18 +87,18 @@ phyloseq2table <- function(physeq,
   df_OTU <- phyloseq::otu_table(physeq)
   # Transform into Dataframe
   df_OTU <- suppressWarnings(as.data.frame(as.matrix(df_OTU)))
-  # Create Col. with OTU names
+  # New OTU-name Column = "OTU"
   df_OTU$OTU <- rownames(df_OTU)
-  # Select Sample names for later
+  # Define Columns needed for later; i.e. all sample name columns
   sel_cols <- colnames(df_OTU)[colnames(df_OTU) != 'OTU']
-  # Pivot Longer to OTU; Sample name = SAMPLE_JOIN; Count
+  # Put into long format: OTU; Sample names = SAMPLE_JOIN; Count.
   df_OTU <- tidyr::gather(df_OTU, "SAMPLE_JOIN", "Count", -"OTU")
 
   # sample metadata
   if(include_sample_data==TRUE){
     # Get Metadata as dataframe
     df_meta = phyloseq2df(physeq, phyloseq::sample_data)
-    # Create col with sample names = SAMPLE_JOIN
+    # Create new Column SAMPLE_JOIN with rownames which are the Sample names
     df_meta$SAMPLE_JOIN = rownames(df_meta)
 
     if(! is.null(control_expr)){
@@ -114,10 +114,10 @@ phyloseq2table <- function(physeq,
     ## trimming
     if(!is.null(sample_col_keep)){
       sample_col_keep <- c('SAMPLE_JOIN', sample_col_keep)
-      df_meta = dplyr::select(df_meta, .dots=as.list(sample_col_keep))
+      df_meta <- dplyr::select(df_meta, all_of(sample_col_keep))
     }
     # join
-    df_OTU = dplyr::inner_join(df_OTU, df_meta, by = 'SAMPLE_JOIN')
+    df_OTU <- dplyr::inner_join(df_OTU, df_meta, by = 'SAMPLE_JOIN')
     if(nrow(df_OTU) == 0){
       stop('No rows returned after inner_join of otu_table & sample_data')
     }
@@ -125,11 +125,11 @@ phyloseq2table <- function(physeq,
 
   # taxonomy table
   if(include_tax_table==TRUE){
-    df_tax = phyloseq::tax_table(physeq)
+    df_tax <- phyloseq::tax_table(physeq)
     # tax table into dataframe
-    df_tax = suppressWarnings(as.data.frame(as.matrix(df_tax)))
+    df_tax <- suppressWarnings(as.data.frame(as.matrix(df_tax)))
     # Create Column with taxa names
-    df_tax$OTU = rownames(df_tax)
+    df_tax$OTU <- rownames(df_tax)
 
     ## trimming if some cols for Taxa are selected:
     if(!is.null(tax_col_keep)){
@@ -142,5 +142,6 @@ phyloseq2table <- function(physeq,
       stop('No rows returned after inner_join of otu_table & tax_table')
     }
   }
+
   return(df_OTU)
 }
