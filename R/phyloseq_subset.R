@@ -111,21 +111,20 @@ expr_param_extract = function(ex, collapse=NULL){
 #' physeq_l = phyloseq_subset(physeq_S2D2, params, ex)
 #' physeq_l
 #'
-phyloseq_subset = function(physeq, params, ex){
-
-  if(is.data.frame(params)){
-    params_n = apply(params, 1, function(x, ex){
+phyloseq_subset <- function (physeq, params, ex)
+{
+  if (is.data.frame(params)) {
+    params_n = apply(params, 1, function(x, ex) {
       stringterpolate(ex, as.list(x))
-    }, ex=ex)
+    }, ex = ex)
     params = apply(params, 1, as.list)
     names(params) = params_n
   }
-
-  physeq_l = plyr::llply(params, function(x){
-    # x should be a list of parameters
+  physeq_l = plyr::llply(params, function(x) {
     exx = stringterpolate(ex, x)
     physeq.m = phyloseq2df(physeq, phyloseq::sample_data)
-    bool = dplyr::mutate_(physeq.m, exx)[,ncol(physeq.m)+1]
+    bool = dplyr::mutate(physeq.m, exx)[, ncol(physeq.m) +
+                                          1]
     phyloseq::prune_samples(bool, physeq)
   })
   return(physeq_l)
