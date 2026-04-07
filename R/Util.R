@@ -53,7 +53,7 @@ phyloseq2df <- function(physeq, table_func){
 #' @param include_tax_table  Include \code{tax_table} information?
 #' @param tax_col_keep  A vector for column names to keep.
 #'   Use \code{NULL} to keep all columns.
-#' @param control_var Variable that contains the condition for the control/treatments. e.g. Substrate
+#' @param control_var Variable that contains the condition for the control/treatments. e.g. "Substrate"
 #' @param control_expr  An expression for identifying which samples are controls.
 #' Control/non-control identification will be in the 'IS_CONTROL' column of the
 #' returned data.frame object.
@@ -107,8 +107,8 @@ phyloseq2table <- function(physeq,
       # setting control - Wanted = a boolean vector or something that says control versus treat for each entry I think.
       df_meta <- df_meta %>%
         mutate(IS_CONTROL =
-                 case_when({{control_var}} == control_expr ~ TRUE,
-                           {{control_var}} != control_expr ~ FALSE,
+                 case_when(.data[[contr_var]] == control_expr ~ TRUE,
+                           .data[[contr_var]]  != control_expr ~ FALSE,
                            TRUE ~ FALSE))
       # check
       if(all(df_meta$IS_CONTROL == FALSE)){
