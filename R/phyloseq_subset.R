@@ -29,16 +29,16 @@
 #' # the expression: "Substrate != '12C-Con'"
 #' get_treatment_params(physeq_S2D2, c('Substrate', 'Day'), "Substrate != '12C-Con'")
 #'
-get_treatment_params = function(physeq, exp_params, treatment=NULL){
-  physeq_m = phyloseq2df(physeq, phyloseq::sample_data)
-  # filter out control (if needed; depending on subsetting expression)
-  if(!is.null(treatment)){
-    physeq_m = dplyr::filter_(physeq_m, treatment)
+get_treatment_params <- function (physeq, exp_params, treatment = NULL)
+{
+  physeq_m <- phyloseq2df(physeq, phyloseq::sample_data)
+
+  if (!is.null(treatment)) {
+    physeq_m <- dplyr::filter(physeq_m, treatment)
   }
 
-  # all pairwise params
-  params = dplyr::distinct(physeq_m[,exp_params] %>% as.data.frame)
-  colnames(params) = exp_params
+  params <- dplyr::distinct(physeq_m[, exp_params] %>% as.data.frame)
+  colnames(params) <- exp_params
   return(params)
 }
 
