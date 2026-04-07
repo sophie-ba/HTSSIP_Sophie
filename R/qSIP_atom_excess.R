@@ -6,7 +6,7 @@
 #' 'light' gradient fractions
 #' @return numeric value (fractional G+C; Gi)
 #'
-calc_Gi = function(Wlight){
+calc_Gi <- function(Wlight){
   if(length(Wlight) > 1){
     Gi = sapply(Wlight, calc_Gi)
   } else{
@@ -44,10 +44,10 @@ calc_Mheavymax = function(Mlight, isotope='13C', Gi=NA){
 #' @param Mlab  The molecular wight of labeled DNA
 #' @param Mlight  The molecular wight of unlabeled DNA
 #' @param Mheavymax  The theoretical maximum molecular weight of fully-labeled DNA
-#' @param isotope  The isotope for which the DNA is labeled with ('13C' or '18O')
+#' @param isotope  The isotope for which the DNA is labeled with ('13C' or '18O'). Default is "13C"
 #' @return numeric value: atom fraction excess (A)
 #'
-calc_atom_excess = function(Mlab, Mlight, Mheavymax, isotope='13C'){
+calc_atom_excess <- function(Mlab, Mlight, Mheavymax, isotope='13C'){
   isotope=toupper(isotope)
   if(isotope=='13C'){
     x = 0.01111233
@@ -70,7 +70,7 @@ calc_atom_excess = function(Mlab, Mlight, Mheavymax, isotope='13C'){
 #' replicate treatments
 #' @return numeric value: atom fraction excess (A)
 #'
-qSIP_atom_excess_format = function(physeq, control_expr, treatment_rep){
+qSIP_atom_excess_format <- function(physeq, control_expr, treatment_rep){
   # formatting input
   cols = c('IS_CONTROL', 'Buoyant_density', treatment_rep)
   df_OTU = phyloseq2table(physeq,
@@ -81,10 +81,10 @@ qSIP_atom_excess_format = function(physeq, control_expr, treatment_rep){
   # removing 'infinite' BD values
   tmp = colnames(df_OTU)
   df_OTU = df_OTU %>%
-    dplyr::mutate_(Buoyant_density = "as.numeric(as.character(Buoyant_density))",
-                   Count = "as.numeric(as.character(Count))") %>%
-    dplyr::filter_('! is.infinite(Buoyant_density)') %>%
-    dplyr::filter_('! is.na(Buoyant_density)') %>%
+    dplyr::mutate(Buoyant_density = "as.numeric(as.character(Buoyant_density))",
+                  Count = "as.numeric(as.character(Count))") %>%
+    dplyr::filter('! is.infinite(Buoyant_density)') %>%
+    dplyr::filter('! is.na(Buoyant_density)') %>%
     as.data.frame
   colnames(df_OTU) = tmp
 
@@ -121,70 +121,56 @@ qSIP_atom_excess_format = function(physeq, control_expr, treatment_rep){
 #'                          treatment_rep='Replicate')
 #' }
 #'
-qSIP_atom_excess = function(physeq,
-                            control_expr,
-                            treatment_rep=NULL,
-                            isotope='13C',
-                            df_OTU_W=NULL){
-  # formatting input
-  if(is.null(df_OTU_W)){
+qSIP_atom_excess <- function (physeq, control_expr, treatment_rep = NULL, isotope = "13C",
+                              df_OTU_W = NULL)
+{
+  if (is.null(df_OTU_W)) {
     no_boot = TRUE
-  } else {
+  }
+  else {
     no_boot = FALSE
   }
-
-  if(no_boot){
-    df_OTU = qSIP_atom_excess_format(physeq, control_expr, treatment_rep)
-    if(nrow(df_OTU) == 0){
-      stop('No rows in OTU table after qSIP_atom_excess_format(). Check control_exp & treatment_rep')
+  if (no_boot) {
+    df_OTU <- qSIP_atom_excess_format(physeq, control_expr,
+                                      treatment_rep)
+    if (nrow(df_OTU) == 0) {
+      stop("No rows in OTU table after qSIP_atom_excess_format(). Check control_exp & treatment_rep")
     }
-
-    # BD shift (Z)
-    df_OTU_W = df_OTU %>%
-      # weighted mean buoyant density (W)
-      dplyr::mutate_(Buoyant_density = "as.numeric(as.character(Buoyant_density))",
-                     Count = "as.numeric(as.character(Count))") %>%
-      dplyr::group_by_('IS_CONTROL', 'OTU', treatment_rep) %>%
-      dplyr::summarize_(W = "stats::weighted.mean(Buoyant_density, Count, na.rm=TRUE)") %>%
+    df_OTU_W <- df_OTU %>%
+      dplyr::mutate(Buoyant_density = "as.numeric(as.character(Buoyant_density))",
+                                         Count = "as.numeric(as.character(Count))") %>%
+      dplyr::group_by("IS_CONTROL", "OTU", treatment_rep) %>%
+      dplyr::summarize(W = "stats::weighted.mean(Buoyant_density, Count, na.rm=TRUE)") %>%
       dplyr::ungroup()
   }
-
-  df_OTU_s = df_OTU_W %>%
-    # mean W of replicate gradients
-    dplyr::group_by_('IS_CONTROL', 'OTU') %>%
-    dplyr::summarize_(Wm = "mean(W, na.rm=TRUE)") %>%
-    # BD shift (Z)
-    dplyr::group_by_('OTU') %>%
-    dplyr::mutate_(IS_CONTROL = "ifelse(IS_CONTROL==TRUE, 'Wlight', 'Wlab')") %>%
+  df_OTU_s = df_OTU_W %>% dplyr::group_by("IS_CONTROL", "OTU") %>%
+    dplyr::summarize(Wm = "mean(W, na.rm=TRUE)") %>%
+    dplyr::group_by("OTU") %>%
+    dplyr::mutate(IS_CONTROL = "ifelse(IS_CONTROL==TRUE, 'Wlight', 'Wlab')") %>%
     tidyr::spread("IS_CONTROL", "Wm") %>%
-    dplyr::mutate_(Z = "Wlab - Wlight") %>%
+    dplyr::mutate(Z = "Wlab - Wlight") %>%
     dplyr::ungroup()
-
-  # atom excess (A)
-  ## pt1
   dots = list(~calc_Gi(Wlight))
   dots = stats::setNames(dots, "Gi")
   df_OTU_s = df_OTU_s %>%
-    mutate_(.dots=dots) %>%
-    mutate_(Mlight = "0.496 * Gi + 307.691")
-  ## pt2
-  MoreArgs = list(isotope=isotope)
-  dots = list(~mapply(calc_Mheavymax, Mlight=Mlight, Gi=Gi, MoreArgs=MoreArgs))
+    mutate(.dots = dots) %>%
+    mutate(Mlight = "0.496 * Gi + 307.691")
+  MoreArgs = list(isotope = isotope)
+  dots = list(~mapply(calc_Mheavymax, Mlight = Mlight, Gi = Gi,
+                      MoreArgs = MoreArgs))
   dots = stats::setNames(dots, "Mheavymax")
   df_OTU_s = df_OTU_s %>%
-    dplyr::mutate_(.dots=dots)
-  ## pt3
-  dots = list(~mapply(calc_atom_excess, Mlab=Mlab, Mlight=Mlight,
-                      Mheavymax=Mheavymax, MoreArgs=MoreArgs))
+    dplyr::mutate(.dots = dots)
+  dots = list(~mapply(calc_atom_excess, Mlab = Mlab, Mlight = Mlight,
+                      Mheavymax = Mheavymax, MoreArgs = MoreArgs))
   dots = stats::setNames(dots, "A")
   df_OTU_s = df_OTU_s %>%
-    dplyr::mutate_(Mlab = "(Z / Wlight + 1) * Mlight") %>%
-    dplyr::mutate_(.dots=dots)
-
-  ## flow control: bootstrap
-  if(no_boot){
-    return(list(W=df_OTU_W, A=df_OTU_s))
-  } else {
+    dplyr::mutate(Mlab = "(Z / Wlight + 1) * Mlight") %>%
+    dplyr::mutate(.dots = dots)
+  if (no_boot) {
+    return(list(W = df_OTU_W, A = df_OTU_s))
+  }
+  else {
     return(df_OTU_s)
   }
 }
@@ -228,10 +214,10 @@ sample_W = function(df, n_sample){
   n_sample = c(3,3)  # control, treatment
   dots = stats::setNames(list(~lapply(data, sample_W, n_sample=n_sample)), "ret")
   df_OTU_W = atomX$W %>%
-    dplyr::group_by_("OTU") %>%
+    dplyr::group_by("OTU") %>%
     tidyr::nest() %>%
-    dplyr::mutate_(.dots=dots) %>%
-    dplyr::select_("-data") %>%
+    dplyr::mutate(.dots=dots) %>%
+    dplyr::select("-data") %>%
     tidyr::unnest()
 
   # calculating atom excess
@@ -295,8 +281,8 @@ qSIP_bootstrap = function(atomX, isotope='13C', n_sample=c(3,3),
                                  A = as.name("A"))
   dots = stats::setNames(list(mutate_call1, mutate_call2), c("A_CI_low", "A_CI_high"))
   df_boot = df_boot %>%
-    dplyr::group_by_("OTU") %>%
-    dplyr::summarize_(.dots=dots)
+    dplyr::group_by("OTU") %>%
+    dplyr::summarize(.dots=dots)
 
   # combining with atomX summary data
   df_boot = dplyr::inner_join(atomX$A, df_boot, c('OTU'='OTU'))
